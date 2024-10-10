@@ -55,7 +55,6 @@ public class PluginImpl implements IPlugin {
 
 	@Override
 	public void install() {
-		MessageServer.getServer().start();
 		copyFile(getClass().getResource("/lib/" + agentJar));
 	}
 
@@ -77,7 +76,6 @@ public class PluginImpl implements IPlugin {
 		}
 		MessageServer server = MessageServer.getServer();
 		server.setLoggers(loggers);
-		server.start();
 	}
 
 	@Override
@@ -125,6 +123,7 @@ public class PluginImpl implements IPlugin {
 
 
 	private void breakCoolRequest() {
+		MessageServer.getServer().stop();
 		File file = getTempLibFile(agentJar);
 
 		List<VirtualMachineDescriptor> list = VirtualMachine.list();
