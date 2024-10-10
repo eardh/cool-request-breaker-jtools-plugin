@@ -123,7 +123,7 @@ public class PluginImpl implements IPlugin {
 
 
 	private void breakCoolRequest() {
-		MessageServer.getServer().stop();
+		MessageServer.getServer().start();
 		File file = getTempLibFile(agentJar);
 
 		List<VirtualMachineDescriptor> list = VirtualMachine.list();
