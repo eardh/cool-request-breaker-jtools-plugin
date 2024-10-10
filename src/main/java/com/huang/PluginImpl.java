@@ -13,6 +13,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -21,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  **/
 public class PluginImpl implements IPlugin {
 
-	public static String agentJar = "CoolRequestAgent.jar";
+	public static String agentJar = "cool-request-agent.jar";
 
 	private AtomicBoolean breaked = new AtomicBoolean(false);
 
@@ -122,6 +123,7 @@ public class PluginImpl implements IPlugin {
 		return panel;
 	}
 
+
 	private void breakCoolRequest() {
 		File file = getTempLibFile(agentJar);
 
@@ -130,13 +132,22 @@ public class PluginImpl implements IPlugin {
 			if (!"com.intellij.idea.Main".equals(descriptor.displayName())) {
 				continue;
 			}
+			VirtualMachine virtualMachine = null;
 			try {
-				VirtualMachine virtualMachine = VirtualMachine.attach(descriptor);
+				virtualMachine = VirtualMachine.attach(descriptor);
 				virtualMachine.loadAgent(file.getAbsolutePath());
-				virtualMachine.detach();
 			} catch (AttachNotSupportedException | IOException | AgentLoadException |
 			         AgentInitializationException ex) {
+				log(ex.getMessage());
 				throw new RuntimeException(ex);
+			} finally {
+				Optional.ofNullable(virtualMachine).ifPresent(v -> {
+					try {
+						v.detach();
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+				});
 			}
 		}
 	}
@@ -169,6 +180,7 @@ public class PluginImpl implements IPlugin {
 		}
 		for (Map.Entry<String, Logger> entry : loggers.entrySet()) {
 			entry.getValue().warn(msg);
+			break;
 		}
 	}
 }

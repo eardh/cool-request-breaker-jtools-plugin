@@ -102,6 +102,7 @@ public class MessageServer {
 		}
 		for (Map.Entry<String, Logger> entry : loggers.entrySet()) {
 			entry.getValue().error(msg);
+			break;
 		}
 	}
 
