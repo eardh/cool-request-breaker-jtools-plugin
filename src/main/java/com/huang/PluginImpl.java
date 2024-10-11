@@ -131,10 +131,11 @@ public class PluginImpl implements IPlugin {
 			if (!"com.intellij.idea.Main".equals(descriptor.displayName())) {
 				continue;
 			}
+			int port = MessageServer.getPort();
 			VirtualMachine virtualMachine = null;
 			try {
 				virtualMachine = VirtualMachine.attach(descriptor);
-				virtualMachine.loadAgent(file.getAbsolutePath());
+				virtualMachine.loadAgent(file.getAbsolutePath(), "port=" + port);
 			} catch (AttachNotSupportedException | IOException | AgentLoadException |
 			         AgentInitializationException ex) {
 				log(ex.getMessage());
