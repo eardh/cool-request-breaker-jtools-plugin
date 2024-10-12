@@ -9,11 +9,9 @@ import com.sun.tools.attach.*;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -55,7 +53,7 @@ public class PluginImpl implements IPlugin {
 
 	@Override
 	public void install() {
-		copyFile(getClass().getResource("/lib/" + agentJar));
+		copyFile("/lib/" + agentJar);
 	}
 
 	@Override
@@ -132,22 +130,14 @@ public class PluginImpl implements IPlugin {
 				continue;
 			}
 			int port = MessageServer.getPort();
-			VirtualMachine virtualMachine = null;
 			try {
-				virtualMachine = VirtualMachine.attach(descriptor);
+				VirtualMachine virtualMachine = VirtualMachine.attach(descriptor);
 				virtualMachine.loadAgent(file.getAbsolutePath(), "port=" + port);
+				virtualMachine.detach();
 			} catch (AttachNotSupportedException | IOException | AgentLoadException |
 			         AgentInitializationException ex) {
 				log(ex.getMessage());
 				throw new RuntimeException(ex);
-			} finally {
-				Optional.ofNullable(virtualMachine).ifPresent(v -> {
-					try {
-						v.detach();
-					} catch (IOException e) {
-						throw new RuntimeException(e);
-					}
-				});
 			}
 		}
 	}
@@ -156,12 +146,12 @@ public class PluginImpl implements IPlugin {
 		return new File(System.getProperty("java.io.tmpdir"), fileName);
 	}
 
-	private File copyFile(URL url) {
+	private void copyFile(String sourcePath) {
 		File copyFile = getTempLibFile(agentJar);
 		if (copyFile.exists() && !copyFile.delete()) {
-			return copyFile;
+			return;
 		}
-		try (InputStream inputStream = url.openStream();
+		try (InputStream inputStream = getClass().getResourceAsStream(sourcePath);
 		     FileOutputStream outputStream = new FileOutputStream(copyFile)) {
 			byte[] buffer = new byte[10240];
 			int length;
@@ -171,7 +161,6 @@ public class PluginImpl implements IPlugin {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		return copyFile;
 	}
 
 	private void log(String msg) {
